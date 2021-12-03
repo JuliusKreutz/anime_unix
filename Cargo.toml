@@ -1,0 +1,25 @@
+cargo-features = ["strip"]
+
+[package]
+name = "anime"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.release]
+lto = true
+strip = "symbols"
+panic = "abort"
+
+[dependencies]
+regex = "1.5.4"
+serde_json = "1.0.72"
+
+[dependencies.ureq]
+version = "2.3.1"
+features = [ "json" ]
+
+[dependencies.serde]
+version = "1.0.130"
+features = ["derive"]
