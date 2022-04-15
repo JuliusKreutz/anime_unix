@@ -14,42 +14,17 @@ pub struct Anime {
     episode: usize,
     episodes: usize,
     airing: bool,
-    language: String,
 }
 
 impl Anime {
-    pub fn new(
-        id: String,
-        title: String,
-        episode: usize,
-        episodes: usize,
-        airing: bool,
-        language: String,
-    ) -> Self {
+    pub fn new(id: String, title: String, episode: usize, episodes: usize, airing: bool) -> Self {
         Self {
             id,
             title,
             episode,
             episodes,
             airing,
-            language,
         }
-    }
-
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-
-    pub fn title(&self) -> &str {
-        &self.title
-    }
-
-    pub fn episode(&self) -> usize {
-        self.episode
-    }
-
-    pub fn language(&self) -> &str {
-        &self.language
     }
 }
 
@@ -160,13 +135,12 @@ fn history() {
         }
     };
 
-    let mut anime = unfinished
-        .iter()
-        .chain(airing.iter())
-        .chain(finished.iter())
-        .nth(selected)
-        .unwrap()
-        .clone();
+    let mut all = Vec::new();
+    all.extend(unfinished);
+    all.extend(airing);
+    all.extend(finished);
+
+    let mut anime = all.remove(selected);
 
     if anime.episode > anime.episodes {
         if anime.airing {
@@ -180,7 +154,7 @@ fn history() {
 }
 
 fn search() {
-    let animes = loop {
+    let mut animes = loop {
         println!(concat!(blue!(), "Search\n"));
         let keyword = read_line!();
         clear();
@@ -222,7 +196,8 @@ fn search() {
         }
     };
 
-    let anime = &animes[selected];
+    let mut anime = animes.remove(selected);
+    scraper::update(&mut anime);
 
     let episode = loop {
         print_episodes!(anime.title, anime.episodes);
@@ -246,21 +221,17 @@ fn search() {
         }
     };
 
-    let mut anime = anime.clone();
     anime.episode = episode;
 
     play(anime);
 }
 
 fn play(mut anime: Anime) {
-    let mut videos = scraper::videos(&anime);
-
     let mut child = Command::new("mpv")
         .args(&[
-            "--http-header-fields=Referer: https://kwik.cx",
-            "--input-ipc-server=/tmp/mpv",
+            "--http-header-fields=Referer: https://goload.pro",
             "--volume=40",
-            &scraper::url(&videos[&anime.language]),
+            &scraper::video(&anime),
         ])
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -331,39 +302,6 @@ fn play(mut anime: Anime) {
                 saves::add_history(&anime);
                 return;
             }
-            "l" => {
-                let videos: Vec<_> = videos.iter().collect();
-
-                let exit = loop {
-                    for (i, (language, _)) in videos.iter().enumerate() {
-                        print_language!(i, language);
-                    }
-                    println!(quit!());
-                    let selected = read_line!();
-                    clear();
-
-                    if selected == "q" {
-                        break true;
-                    }
-
-                    let selected = selected.parse();
-
-                    if selected.is_err() {
-                        continue;
-                    }
-
-                    let selected: usize = selected.unwrap();
-
-                    if selected < videos.len() {
-                        anime.language = videos[selected].0.clone();
-                        break false;
-                    }
-                };
-
-                if exit {
-                    continue;
-                }
-            }
             "q" => {
                 let _ = child.kill();
                 return;
@@ -373,15 +311,12 @@ fn play(mut anime: Anime) {
             }
         }
 
-        videos = scraper::videos(&anime);
-
         let _ = child.kill();
         child = Command::new("mpv")
             .args(&[
-                "--http-header-fields=Referer: https://kwik.cx",
-                "--input-ipc-server=/tmp/mpv",
+                "--http-header-fields=Referer: https://goload.pro",
                 "--volume=40",
-                &scraper::url(&videos[&anime.language]),
+                &scraper::video(&anime),
             ])
             .stdout(Stdio::null())
             .stderr(Stdio::null())

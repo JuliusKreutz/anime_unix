@@ -123,24 +123,10 @@ macro_rules! print_episodes {
     };
 }
 
-macro_rules! print_language {
-    ($i:expr, $language:expr) => {
-        println!(
-            "{}{}{}{}{}{}",
-            blue!("["),
-            cyan!(),
-            $i,
-            blue!("] "),
-            yellow!(),
-            $language
-        );
-    };
-}
-
 macro_rules! print_video {
     ($title:expr, $episode:expr, $max_episode:expr) => {
         println!(
-            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
             green!("Playing "),
             yellow!(),
             $title,
@@ -168,10 +154,6 @@ macro_rules! print_video {
             cyan!("f"),
             blue!("] "),
             yellow!("finished\n"),
-            blue!("["),
-            cyan!("l"),
-            blue!("] "),
-            magenta!("language\n"),
             quit!()
         );
     };
