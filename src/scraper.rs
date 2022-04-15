@@ -53,17 +53,13 @@ pub fn video(anime: &Anime) -> String {
     let mut max_resolution = 0;
     let mut video = "";
     for source in data["sources"].as_array().unwrap() {
-        if source["label"] == "Auto" {
-            continue;
-        }
-
         let resolution = source["label"]
             .as_str()
             .unwrap()
             .strip_suffix(" P")
-            .unwrap()
-            .parse()
-            .unwrap();
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(1);
+
         if resolution > max_resolution {
             video = source["file"].as_str().unwrap();
             max_resolution = resolution;
